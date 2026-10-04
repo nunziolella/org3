@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "org3-engine"
+version = "3.3.0"
+description = "Org 3.0 Operating Framework, Multi-dimensional MAS Governance, Delegation Policies and Quality Gates"
+authors = [{ name = "Symbiotic", email = "dev@godigix.com" }]
+
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+org3 = "org3.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

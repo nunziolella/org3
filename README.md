@@ -1,46 +1,120 @@
-# AIProd
+# Org 3.0 (Org3) — Multi-Agent Operating Framework
 
-AIProd is an AI-first personal operating system designed to transform fragmented thoughts, ideas, obligations and projects into a persistent, prioritised and actionable workflow.
+[![Test Suite](https://img.shields.io/badge/pytest-11%20passed-brightgreen.svg)](tests/)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue.svg)](pyproject.toml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-The product is not intended to be a generic to-do list or a disposable AI chat. Its purpose is to act as an external cognitive system that helps the user capture information, classify it, connect it to the right context, decide what matters now and preserve everything else without creating mental overload.
+> **"Il contratto di delega ideale tra umano e macchina: le regole le scrive il Founder, le macchine le eseguono."**  
+> — Dottrina Fondativa Org3 (10/07/2026)
 
-## Core product loop
+Org3 è un framework Python open source agnostico e portabile per modellare, governare e far cooperare team ibridi di umani e agenti AI in un'organizzazione autonoma (Multi-Agent System).
 
-1. Capture thoughts, tasks, ideas, problems or goals.
-2. Let the AI classify and enrich the input.
-3. Convert it into an actionable object: task, project, note, area or incubated idea.
-4. Prioritise according to urgency, impact, strategic alignment and mental cost.
-5. Execute only the next relevant action.
-6. Review the system periodically and update priorities.
+Org3 sta a **Structura** come Git sta a GitHub: è il framework/engine di governance e modello organizzativo sottostante, mentre Structura ne è la piattaforma di gestione operativa, interfaccia utente e cockpit gestionale.
 
-## Main modules
+---
 
-- Dashboard
-- Inbox and Quick Capture
-- Areas
-- Projects
-- Next Actions
-- Idea Incubator
-- Weekly Review
-- AI Assistant
-- Settings
+## 🏛️ I Quattro Piani di Separazione
 
-## Documentation
+Allineato alla specifica sovrana del **Persistent Information Layer** (`03_MEMORY_SYSTEM`):
 
-- [Product Vision](docs/PRODUCT_VISION.md)
-- [Functional Specification](docs/FEATURES.md)
-- [User Flows](docs/USER_FLOWS.md)
-- [System Architecture](docs/ARCHITECTURE.md)
-- [Data Model](docs/DATA_MODEL.md)
-- [Roadmap](docs/ROADMAP.md)
-- [Strategic Changelog](docs/CHANGELOG_MEMORY.md)
+1. **Organizational Model (Org3):** definisce Unità, Divisioni, Funzioni, Ruoli, Agenti (Human / AI), permessi IAM, responsabilità, contratti di delega ed escalation.
+2. **Management & Execution Plane (Structura / PM):** gestisce la gerarchia di pianificazione (`Macro → Objective/KR → Initiative → Epic → Milestone → Story → Task`) e il `Research Lab` scientifico.
+3. **Persistent Information Layer (Drive / Object Storage):** archiviazione duratura strutturata sui 10 domini canonici.
+4. **Retrieval & Memory Intelligence (Memograph):** knowledge graph, calcolo del lignaggio e 5 livelli di autorità mnemonica (`raw_memory`, `meta_memory`, `canonical_memory`, `decision_memory`, `operational_memory`).
 
-## Product principles
+---
 
-- Capture must be faster than organising.
-- Not every idea becomes a project.
-- The system must reduce decisions, not create new ones.
-- The user should see the next action, not the full complexity.
-- AI suggestions must remain reviewable and reversible.
-- Persistent context is more important than chat history.
-- Active work must remain intentionally limited.
+## 🔑 Caratteristiche Principali
+
+### 1. Ontologia Multi-Dimensionale (`org3.core.ontology`)
+- **Nessuna duplicazione di file fisici:** Lo storage fisico risponde a *"Che tipo di informazione è?"* (10 domini: `01_CORPORATE` .. `10_OPERATIONS_RECORDS`). Org3 risponde a *"Chi, con quale ruolo o divisione vi accede?"*.
+- **Attori MAS:** Supporto nativo per `HUMAN`, `AI_SYSTEM`, `AI_SUBAGENT`, `WORKER_SERVICE`.
+- **Master Assoluto:** Gestione del God Mode per il Founder (`is_master=True`), che scavalca i vincoli burocratici ordinari garantendo flessibilità massima.
+
+### 2. Delegation Policy Engine (`org3.core.delegation`)
+Risolve formalmente i conflitti di attribuzione e sovra-estensione (es. **caso CHRIMAT**):
+- Contratti espliciti `DelegationPolicy` che vincolano le azioni delegate (es. proposte commerciali, NDA, trattative).
+- Vincoli negativi categorici:
+  - `NO_IP_CONCESSION`: Blocco immediato di qualsiasi cessione o licenza esclusiva di Proprietà Intellettuale.
+  - `NO_EXCLUSIVITY`: Divieto di concessione di patti di esclusiva commerciale o territoriale.
+  - `NO_ROADMAP_COMMITMENT`: Divieto di impegnare date fisse di roadmap non concordate.
+  - `MAX_DISCOUNT_PERCENT`: Tetto massimo di sconto (es. max 10%).
+  - `MAX_FINANCIAL_AMOUNT`: Soffitto finanziario per singola operazione.
+
+### 3. Matrice di Rischio e Governance Gates (`org3.core.governance_gates`)
+Classificazione formale delle mutazioni operative:
+- **Classe A (Auto-approve):** Note interne, metadati, modifiche cosmetiche a basso rischio.
+- **Classe B (Evidence-backed):** Chiusura task approvata automaticamente solo in presenza di evidenza oggettiva verificabile (commit, deploy, test verde).
+- **Classe C (Human-in-the-Loop):** Mutazioni ad alto impatto (creazione obiettivi, cambio scope, invio offerte commerciali) con escalation [HITL].
+- **Classe D (Master Assoluto Change Control):** Invarianti hard, ontologia, schema governance, riservati al Founder.
+
+### 4. Virtual Memory Lenses (`org3.core.views`)
+Generatore di proiezioni mnemoniche virtuali:
+- Ricostruisce al volo viste specializzate (es. `CFO Memory View`, `Technology Memory View`, `Division Dossier`) aggregando artefatti canonici, evidenze e decisioni senza copiare file.
+
+### 5. Cognitive CI/CD & Zero-Vulnerability (`org3.core.gates`)
+- Analizzatore AST Python per intercettare chiamate pericolose (`eval`, `exec`, shell non sanitizzate) prima del merge.
+
+---
+
+## 🚀 Quickstart
+
+### Installazione
+```bash
+git clone https://github.com/nunziolella/org3.git
+cd org3
+pip install -e .
+```
+
+### Utilizzo CLI
+```bash
+# Elenca i 10 domini canonici del Persistent Information Layer
+org3 list-domains
+
+# Esegui il test di validazione delega (Caso CHRIMAT)
+org3 test-chrimat-delegation
+
+# Esegui l'audit di sicurezza AST del codice
+org3 audit-security .
+```
+
+### Utilizzo in Python
+```python
+from org3 import (
+    Role, Agent, AgentType, DelegationPolicy, 
+    DelegationConstraint, DelegationConstraintType, DelegationEngine
+)
+
+# 1. Definizione della policy di delega
+policy = DelegationPolicy(
+    id="del-partner-001",
+    delegator_id="agent-nunzio",
+    delegate_id="agent-francesco",
+    allowed_actions=["send_commercial_proposal"],
+    constraints=[
+        DelegationConstraint(constraint_type=DelegationConstraintType.NO_IP_CONCESSION),
+        DelegationConstraint(constraint_type=DelegationConstraintType.MAX_DISCOUNT_PERCENT, value=10.0),
+    ],
+    financial_ceiling=25000.0
+)
+
+# 2. Valutazione di un'operazione tentata
+result = DelegationEngine.evaluate_action(
+    policy=policy,
+    requested_action="send_commercial_proposal",
+    financial_amount=18000.0,
+    context_payload={"concedes_ip": False, "discount_percent": 8.0}
+)
+
+assert result.allowed is True
+```
+
+---
+
+## 🧪 Test Suite
+
+Tutti i test sono implementati con `pytest`:
+```bash
+pytest tests/
+```
+Esito attuale: **11/11 tests passati (100% SUCCESS)**.

@@ -1,0 +1,68 @@
+"""Org 3.0 Operating Framework Engine.
+
+Provides the fractal governance, multi-dimensional organizational ontology,
+delegation policies (CHRIMAT solution), virtual memory lenses (Persistent Information Layer),
+Cognitive CI/CD (AICD), Work Object management, and quality gates for the Symbiotic Ecosystem.
+"""
+
+from org3.core import (
+    FunctionalDomain,
+    MemoryAuthority,
+    DocumentLifecycleStatus,
+    OrgStructureType,
+    AgentType,
+    ActionPermission,
+    Role,
+    Agent,
+    Division,
+    OrganizationalUnit,
+    PersistentArtifactReference,
+    DelegationConstraintType,
+    DelegationConstraint,
+    DelegationPolicy,
+    DelegationEvaluationResult,
+    DelegationEngine,
+    VirtualMemoryView,
+    VirtualMemoryLens,
+    MutationRiskClass,
+    GateDecisionType,
+    GovernanceGateDecision,
+    GovernanceGateEvaluator,
+    DepartmentLevel,
+    WorkUnit,
+    WorkObject,
+    ZeroVulnerabilityGate,
+    MergeGateValidator,
+)
+
+__version__ = "3.3.0"
+
+__all__ = [
+    "FunctionalDomain",
+    "MemoryAuthority",
+    "DocumentLifecycleStatus",
+    "OrgStructureType",
+    "AgentType",
+    "ActionPermission",
+    "Role",
+    "Agent",
+    "Division",
+    "OrganizationalUnit",
+    "PersistentArtifactReference",
+    "DelegationConstraintType",
+    "DelegationConstraint",
+    "DelegationPolicy",
+    "DelegationEvaluationResult",
+    "DelegationEngine",
+    "VirtualMemoryView",
+    "VirtualMemoryLens",
+    "MutationRiskClass",
+    "GateDecisionType",
+    "GovernanceGateDecision",
+    "GovernanceGateEvaluator",
+    "DepartmentLevel",
+    "WorkUnit",
+    "WorkObject",
+    "ZeroVulnerabilityGate",
+    "MergeGateValidator",
+]
