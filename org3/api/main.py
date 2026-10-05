@@ -10,7 +10,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from org3.api.routers import approvals, delegation, members, organizations, tokens
+from org3.api.routers import approvals, delegation, members, organizations, storage, tokens
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 
@@ -37,6 +37,7 @@ app.include_router(members.router)
 app.include_router(delegation.router)
 app.include_router(approvals.router)
 app.include_router(tokens.router)
+app.include_router(storage.router)
 
 
 @app.get("/health", tags=["System"])

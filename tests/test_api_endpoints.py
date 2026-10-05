@@ -132,7 +132,7 @@ def test_full_organization_delegation_and_token_flow():
     # 5. Valutazione Delega Real-Time (POST /v1/delegation/evaluate)
     # Test A: Offerta commerciale standard entro 5.000€ -> AUTORIZZATA
     eval_ok = client.post(
-        "/v1/delegation/evaluate",
+        "/v1/delegation/evaluate-dry-run",
         json={
             "org_id": org_id,
             "actor_id": partner_id,
@@ -150,7 +150,7 @@ def test_full_organization_delegation_and_token_flow():
 
     # Test B: Tentativo di cessione IP (Caso CHRIMAT) -> BLOCCATO da vincolo stringente
     eval_ip = client.post(
-        "/v1/delegation/evaluate",
+        "/v1/delegation/evaluate-dry-run",
         json={
             "org_id": org_id,
             "actor_id": partner_id,
@@ -168,7 +168,7 @@ def test_full_organization_delegation_and_token_flow():
 
     # Test C: Importo oltre soglia (12.000€ > 5.000€) -> BLOCCATO da soffitto economico
     eval_amt = client.post(
-        "/v1/delegation/evaluate",
+        "/v1/delegation/evaluate-dry-run",
         json={
             "org_id": org_id,
             "actor_id": partner_id,
@@ -184,7 +184,7 @@ def test_full_organization_delegation_and_token_flow():
 
     # Test D: Nunzio (God Mode) esegue qualsiasi azione -> SEMPRE AUTORIZZATO
     eval_god = client.post(
-        "/v1/delegation/evaluate",
+        "/v1/delegation/evaluate-dry-run",
         json={
             "org_id": org_id,
             "actor_id": founder_id,

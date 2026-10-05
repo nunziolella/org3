@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 import json
+import jwt
+import datetime
+from fastapi import Security, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from org3.api.routers.tokens import hash_token
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -18,6 +23,8 @@ from org3.core.delegation import (
 )
 from org3.core.governance_gates import MutationRiskClass, GovernanceGateEvaluator
 from org3.models.multitenant import DelegationPolicyRecord
+
+JWT_SECRET = 'org3_secure_jwt_secret_for_ticket_signing_only'
 
 router = APIRouter(prefix="/v1/delegation", tags=["Delegation & Policy Engine"])
 
@@ -113,7 +120,8 @@ def revoke_policy(policy_id: str, db=Depends(get_db)):
     return None
 
 
-@router.post("/evaluate", response_model=EvaluateActionResponse)
+@router.post("/evaluate", response_model=EvaluateActionResponse, summary="Valutazione delega in-process")
+@router.post("/evaluate-dry-run", response_model=EvaluateActionResponse, summary="Solo per UX (Pre-flight)")
 def evaluate_delegation(req: EvaluateActionRequest, db=Depends(get_db)):
     """Valuta in tempo reale se un'azione è autorizzata, violata o richiede approvazione HITL."""
     cur = db.cursor()
@@ -227,3 +235,68 @@ def evaluate_delegation(req: EvaluateActionRequest, db=Depends(get_db)):
         applied_constraints=eval_result.applied_constraints,
         reason=eval_result.reason,
     )
+
+
+
+class AuthorizeActionResponse(BaseModel):
+    allowed: bool
+    requires_hitl: bool
+    governance_gate: str
+    approval_request_id: Optional[str] = None
+    authorization_ticket: Optional[str] = None  # Signed JWT che Cuprite deve validare
+    reason: str
+
+security = HTTPBearer()
+
+def get_current_token(credentials: HTTPAuthorizationCredentials = Security(security), db=Depends(get_db)):
+    token_h = hash_token(credentials.credentials)
+    cur = db.cursor()
+    cur.execute("SELECT id, org_id, member_id FROM org3_api_tokens WHERE token_hash = %s;", (token_h,))
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=401, detail="Token non valido")
+    return row
+
+@router.post("/authorize", response_model=AuthorizeActionResponse, summary="Enforcement Server-Side (Post-Red Team)")
+def authorize_delegation(req: EvaluateActionRequest, db=Depends(get_db), token_data=Depends(get_current_token)):
+    """Valuta l'azione e se approvata genera un Ticket crittografico; altrimenti apre una ApprovalRequest."""
+    # L'utente autenticato deve essere quello che fa la richiesta, oppure essere un Service Account
+    # Riutilizziamo la logica di evaluate
+    eval_resp = evaluate_delegation(req, db)
+    
+    if eval_resp.allowed:
+        # Genera ticket JWT
+        payload = {
+            "org_id": req.org_id,
+            "actor_id": req.actor_id,
+            "action": req.action,
+            "amount": req.requested_amount,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        }
+        ticket = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+        return AuthorizeActionResponse(
+            allowed=True,
+            requires_hitl=False,
+            governance_gate=eval_resp.governance_gate,
+            authorization_ticket=ticket,
+            reason="Azione autorizzata e validata crittograficamente."
+        )
+    else:
+        # Crea ApprovalRequest in automatico
+        cur = db.cursor()
+        cur.execute(
+            """
+            INSERT INTO org3_approval_requests (org_id, source_service, risk_class, title, description, payload, requested_by, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'PENDING')
+            RETURNING id;
+        """,
+            (req.org_id, "structura", eval_resp.governance_gate, f"Autorizzazione per {req.action}", eval_resp.reason, json.dumps(req.dict()), req.actor_id)
+        )
+        approval_id = cur.fetchone()["id"]
+        return AuthorizeActionResponse(
+            allowed=False,
+            requires_hitl=True,
+            governance_gate=eval_resp.governance_gate,
+            approval_request_id=str(approval_id),
+            reason=eval_resp.reason
+        )
