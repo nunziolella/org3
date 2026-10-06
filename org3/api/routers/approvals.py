@@ -35,9 +35,17 @@ class ResolveApprovalRequest(BaseModel):
 def submit_approval_request(req: SubmitApprovalRequest, db=Depends(get_db)):
     """Invia una nuova richiesta di autorizzazione umana (HITL) al centro notifiche di Org3."""
     cur = db.cursor()
-    cur.execute("SELECT id FROM org3_organizations WHERE id = %s;", (req.org_id,))
-    if not cur.fetchone():
+    cur.execute("SELECT id, slug, name FROM org3_organizations WHERE id = %s;", (req.org_id,))
+    org_row = cur.fetchone()
+    if not org_row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organizzazione non trovata.")
+
+    member_name = None
+    if req.requested_by:
+        cur.execute("SELECT name FROM org3_members WHERE id = %s;", (req.requested_by,))
+        mem_row = cur.fetchone()
+        if mem_row:
+            member_name = mem_row["name"]
 
     cur.execute(
         """
@@ -56,6 +64,37 @@ def submit_approval_request(req: SubmitApprovalRequest, db=Depends(get_db)):
         ),
     )
     row = cur.fetchone()
+
+    # Outbox Event
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('APPROVAL_REQUEST', str(row['id']), 'APPROVAL_REQUEST_CREATED', json.dumps(dict(row), default=str))
+    )
+
+    # Multi-Channel Dispatch (Telegram Deep-Link)
+    try:
+        from org3.notifications.dispatcher import get_dispatcher
+        financial_val = None
+        if isinstance(req.payload, dict) and "amount" in req.payload:
+            financial_val = float(req.payload["amount"])
+        elif isinstance(req.payload, dict) and "value" in req.payload:
+            financial_val = float(req.payload["value"])
+
+        get_dispatcher().dispatch_approval_alert(
+            approval_id=str(row["id"]),
+            org_slug=org_row["slug"],
+            org_name=org_row["name"],
+            title=req.title,
+            description=req.description,
+            risk_class=req.risk_class,
+            source_service=req.source_service,
+            requested_by_name=member_name,
+            financial_value=financial_val,
+        )
+    except Exception as e:
+        # Non-blocking dispatch failure
+        pass
+
     return ApprovalRequest(**dict(row))
 
 

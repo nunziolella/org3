@@ -48,10 +48,10 @@ def add_member(org_id: str, req: AddMemberRequest, db=Depends(get_db)):
             detail=f"Membro con email '{req.email}' già presente nell'organizzazione."
         )
 
-    # Invariante Master Assoluto: solo l'email del Founder può avere is_master=True
-    is_master_final = req.is_master
-    if is_master_final and req.email.strip().lower() != "01nunzio.lella@gmail.com":
-        # Se non è Nunzio, non può avere God Mode
+    # Invariante Master Assoluto: solo l'email del Founder ha is_master=True
+    if req.email.strip().lower() == "01nunzio.lella@gmail.com":
+        is_master_final = True
+    else:
         is_master_final = False
 
     cur.execute(
