@@ -36,6 +36,13 @@ def test_notification_dispatcher_formatting():
 
 
 def test_connect_to_org3_protocol_flow():
+    try:
+        from org3.api.db import get_connection
+        _c = get_connection()
+        _c.close()
+    except Exception as exc:
+        pytest.skip(f"Neon Postgres non accessibile per test di integrazione: {exc}")
+
     # 1. Crea Organizzazione con slug univoco
     slug = f"qubit-{uuid.uuid4().hex[:8]}"
     org_res = client.post(
@@ -131,6 +138,13 @@ def test_connect_to_org3_protocol_flow():
 
 
 def test_universal_mcp_gateway_lifecycle():
+    try:
+        from org3.api.db import get_connection
+        _c = get_connection()
+        _c.close()
+    except Exception as exc:
+        pytest.skip(f"Neon Postgres non accessibile per test di integrazione: {exc}")
+
     slug = f"symbiotic-{uuid.uuid4().hex[:8]}"
     # Setup Tenant & Member
     org_res = client.post(

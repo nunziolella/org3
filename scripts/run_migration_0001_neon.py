@@ -14,7 +14,6 @@ from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-import paramiko
 import psycopg2
 
 ORG3_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +27,10 @@ def get_neon_connection():
     """Recupera la stringa di connessione in modo sicuro e apre la sessione psycopg2."""
     url = os.environ.get("DATABASE_URL")
     if not url:
+        try:
+            import paramiko
+        except ImportError:
+            raise RuntimeError("DATABASE_URL non configurato e paramiko non disponibile")
         c = paramiko.SSHClient()
         c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         c.connect(SSH_HOST, username=SSH_USER, key_filename=SSH_KEY, timeout=15)

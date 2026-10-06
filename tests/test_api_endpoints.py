@@ -46,6 +46,13 @@ def test_full_organization_delegation_and_token_flow():
     7. Emissione e Validazione Token Org3 Connect.
     """
     # 1. Onboarding Organizzazione
+    try:
+        from org3.api.db import get_connection
+        _c = get_connection()
+        _c.close()
+    except Exception as exc:
+        pytest.skip(f"Neon Postgres non accessibile per test di integrazione: {exc}")
+
     unique_slug = f"pilot-{uuid.uuid4().hex[:8]}"
     create_org_res = client.post(
         "/v1/organizations",

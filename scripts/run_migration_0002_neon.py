@@ -14,7 +14,6 @@ from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-import paramiko
 import psycopg2
 
 ORG3_DIR = Path(__file__).resolve().parent.parent
@@ -26,19 +25,26 @@ SSH_USER = "ubuntu"
 
 def get_neon_connection():
     """Recupera la stringa di connessione in modo sicuro e apre la sessione psycopg2."""
-    c = paramiko.SSHClient()
-    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(SSH_HOST, username=SSH_USER, key_filename=SSH_KEY, timeout=15)
-    stdin, stdout, stderr = c.exec_command(
-        "grep -E '^DATABASE_URL=' /home/ubuntu/structura/.env", timeout=15
-    )
-    line = stdout.read().decode(errors="replace").strip()
-    c.close()
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        try:
+            import paramiko
+        except ImportError:
+            raise RuntimeError("DATABASE_URL non configurato e paramiko non disponibile")
+        c = paramiko.SSHClient()
+        c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        c.connect(SSH_HOST, username=SSH_USER, key_filename=SSH_KEY, timeout=15)
+        stdin, stdout, stderr = c.exec_command(
+            "grep -E '^DATABASE_URL=' /home/ubuntu/structura/.env", timeout=15
+        )
+        line = stdout.read().decode(errors="replace").strip()
+        c.close()
 
-    if not line:
-        raise RuntimeError("DATABASE_URL non trovato in /home/ubuntu/structura/.env")
+        if not line:
+            raise RuntimeError("DATABASE_URL non trovato in /home/ubuntu/structura/.env")
 
-    url = line.split("=", 1)[1].strip().strip('"').strip("'")
+        url = line.split("=", 1)[1].strip().strip('"').strip("'")
+
     clean_url = (
         url.replace("postgresql+asyncpg://", "postgresql://")
         .replace("postgresql+psycopg://", "postgresql://")
