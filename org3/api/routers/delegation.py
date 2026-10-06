@@ -85,6 +85,11 @@ def create_policy(req: CreatePolicyRequest, db=Depends(get_db)):
         ),
     )
     row = cur.fetchone()
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('DELEGATION_POLICY', str(row['id']), 'POLICY_CREATED', json.dumps(dict(row), default=str))
+    )
     return DelegationPolicyRecord(**dict(row))
 
 
@@ -115,8 +120,14 @@ def revoke_policy(policy_id: str, db=Depends(get_db)):
     """Revoca formalmente un contratto di delega."""
     cur = db.cursor()
     cur.execute("UPDATE org3_delegation_policies SET is_revoked = true WHERE id = %s RETURNING id;", (policy_id,))
-    if not cur.fetchone():
+    row = cur.fetchone()
+    if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contratto di delega non trovato.")
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('DELEGATION_POLICY', policy_id, 'POLICY_REVOKED', json.dumps({'id': policy_id, 'is_revoked': True}))
+    )
     return None
 
 

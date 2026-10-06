@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import List, Optional
 from uuid import UUID
 
@@ -69,6 +70,11 @@ def add_member(org_id: str, req: AddMemberRequest, db=Depends(get_db)):
         ),
     )
     row = cur.fetchone()
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('MEMBER', str(row['id']), 'MEMBER_CREATED', json.dumps(dict(row), default=str))
+    )
     return Member(**dict(row))
 
 
@@ -149,4 +155,10 @@ def update_member(member_id: str, req: UpdateMemberRequest, db=Depends(get_db)):
     params.append(member_id)
     query = f"UPDATE org3_members SET {', '.join(updates)} WHERE id = %s RETURNING id, org_id, email, name, member_type, role, is_master, is_active, created_at;"
     cur.execute(query, tuple(params))
-    return Member(**dict(cur.fetchone()))
+    row = cur.fetchone()
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('MEMBER', str(row['id']), 'MEMBER_UPDATED', json.dumps(dict(row), default=str))
+    )
+    return Member(**dict(row))

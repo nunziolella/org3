@@ -145,3 +145,17 @@ class ApiToken(BaseModel):
     allowed_scopes: List[str] = Field(default_factory=lambda: ["read", "write"])
     expires_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class OutboxEvent(BaseModel):
+    """Evento Outbox per la sincronizzazione (Eventual Consistency) con Neo4j/Memograph."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID = Field(default_factory=uuid4)
+    aggregate_type: str = Field(..., max_length=64, description="Tipo entità mutata (es. 'MEMBER', 'DELEGATION_POLICY')")
+    aggregate_id: str = Field(..., max_length=64)
+    event_type: str = Field(..., max_length=64, description="Tipo evento (es. 'CREATED', 'UPDATED', 'REVOKED')")
+    payload: Dict[str, Any] = Field(default_factory=dict, description="Payload completo della mutazione")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    processed_at: Optional[datetime] = None
+    is_processed: bool = False

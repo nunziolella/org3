@@ -56,6 +56,11 @@ def create_organization(req: CreateOrganizationRequest, db=Depends(get_db)):
         (req.slug.lower().strip(), req.name.strip(), req.owner_email.strip(), req.plan.value),
     )
     row = cur.fetchone()
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('ORGANIZATION', str(row['id']), 'ORGANIZATION_CREATED', json.dumps(dict(row), default=str))
+    )
     return Organization(**dict(row))
 
 
@@ -136,7 +141,13 @@ def update_organization(org_id: str, req: UpdateOrganizationRequest, db=Depends(
     params.append(org_id)
     query = f"UPDATE org3_organizations SET {', '.join(updates)} WHERE id = %s RETURNING id, slug, name, plan, owner_email, is_active, created_at, updated_at;"
     cur.execute(query, tuple(params))
-    return Organization(**dict(cur.fetchone()))
+    row = cur.fetchone()
+    # OUTBOX EVENT
+    cur.execute(
+        "INSERT INTO org3_outbox (aggregate_type, aggregate_id, event_type, payload) VALUES (%s, %s, %s, %s);",
+        ('ORGANIZATION', str(row['id']), 'ORGANIZATION_UPDATED', json.dumps(dict(row), default=str))
+    )
+    return Organization(**dict(row))
 
 
 @router.post("/organizations/{org_id}/workspaces", response_model=Workspace, status_code=status.HTTP_201_CREATED)

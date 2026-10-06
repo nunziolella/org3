@@ -13,3 +13,12 @@ venv/
 desktop.ini
 */desktop.ini
 .DS_Store
+
+# Frontend Node.js
+node_modules/
+*/node_modules/
+web/node_modules/
+web/dist/
+.env.local
+.env.*.local
+
