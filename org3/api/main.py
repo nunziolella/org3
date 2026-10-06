@@ -60,11 +60,16 @@ from fastapi.staticfiles import StaticFiles
 
 web_dist_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "dist")
 if os.path.isdir(web_dist_dir):
+    assets_dir = os.path.join(web_dist_dir, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="org3_assets")
+
     app.mount("/app", StaticFiles(directory=web_dist_dir, html=True), name="org3_web_app")
 
     @app.get("/", include_in_schema=False)
     def root_redirect():
         return RedirectResponse(url="/app/")
+
 
 
 
