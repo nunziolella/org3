@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "checks": [
+    {
+      "id": "static-analysis",
+      "command": [
+        "python",
+        "-m",
+        "bandit",
+        "-r",
+        "org3",
+        "-ll",
+        "-q"
+      ],
+      "timeout_seconds": 240
+    },
+    {
+      "id": "secrets",
+      "command": [
+        "gitleaks",
+        "dir",
+        ".",
+        "--exit-code",
+        "1",
+        "--no-banner"
+      ],
+      "timeout_seconds": 240
+    },
+    {
+      "id": "dependencies",
+      "command": [
+        "python",
+        "-m",
+        "pip_audit",
+        "-r",
+        "requirements.txt",
+        "--progress-spinner",
+        "off"
+      ],
+      "timeout_seconds": 300
+    },
+    {
+      "id": "tests",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "--strict-markers"
+      ],
+      "timeout_seconds": 420
+    },
+    {
+      "id": "authorization",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_authorization_gate.py"
+      ],
+      "timeout_seconds": 180
+    },
+    {
+      "id": "build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "--prefix",
+        "web"
+      ],
+      "timeout_seconds": 240
+    }
+  ]
+}

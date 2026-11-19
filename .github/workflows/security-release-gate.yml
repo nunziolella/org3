@@ -1,0 +1,60 @@
+name: ORG3 Security Release Gate
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    name: security-release-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install read-only audit tools and project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+          python -m pip install pytest pytest-asyncio bandit pip-audit
+          npm ci --prefix web
+          go install github.com/gitleaks/gitleaks/v8@v8.27.2
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Run fail-closed gate (no production credentials)
+        run: |
+          python -m org3.security.release_gate \
+            --repository . \
+            --policy policies/org3-release-gate.json \
+            --expected-sha "$GITHUB_SHA" \
+            --report "$RUNNER_TEMP/org3-release-evidence.json"
+
+      - name: Preserve evidence for audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: org3-release-evidence
+          path: ${{ runner.temp }}/org3-release-evidence.json
+          if-no-files-found: warn
